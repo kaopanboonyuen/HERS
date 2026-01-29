@@ -1,7 +1,12 @@
-# 🚗 HERS: Hidden-Pattern Expert Learning for Risk-Specific Vehicle Damage Adaptation in Diffusion Models
+# 👩 HERS: Hidden-Pattern Expert Learning for Risk-Specific Vehicle Damage Adaptation in Diffusion Models
 
 <p align="center">
-  <img src="HERS_IMG/HERS_SHOWCASE_01.png" width="100%" />
+  <strong>Teerapong Panboonyuen</strong><br/>
+  🌐 <a href="https://kaopanboonyuen.github.io/HERS">https://kaopanboonyuen.github.io/HERS</a>
+</p>
+
+<p align="center">
+  <img src="HERS_IMG/HERS_SHOWCASE_02.png" width="100%" />
 </p>
 
 **HERS** is a domain-adaptive diffusion framework designed to generate *forensically plausible*, *risk-aware* vehicle damage images for high-stakes applications such as **car insurance, fraud detection, and claim verification**.
@@ -28,20 +33,20 @@ HERS is built around one core question:
 
 ---
 
-## 🔍 Qualitative Comparison: Fine-Grained Damage Fidelity
+## 🔍 Figure 1: Fine-Grained Damage Fidelity and Localized Consistency
 
 <p align="center">
-  <img src="HERS_IMG/HERS_SHOWCASE_02.png" width="100%" />
+  <img src="HERS_IMG/HERS_SHOWCASE_01.png" width="100%" />
 </p>
 
 **Figure 1 — Damage-Level Visual Fidelity**
-Comparison against strong diffusion baselines (SD v1.5, SDXL, MoLE, VQ-Diffusion, Versatile Diffusion).
+This figure presents a qualitative comparison between **HERS** and strong diffusion-based baselines (SD v1.5, SDXL, MoLE, VQ-Diffusion, and Versatile Diffusion).
 
 **Key observation:**
 
-* HERS preserves *localized consistency* across damage regions
-* Fine-grained artifacts (dents, cracked paint, torn bumpers) remain coherent under zoom
-* Baselines often hallucinate smooth textures or blur forensic cues
+* HERS produces damage regions with **higher visual fidelity** and **localized structural consistency**
+* Fine-grained artifacts such as dents, cracks, torn bumpers, and paint abrasions are preserved under zoom
+* Competing models often smooth, misplace, or hallucinate damage textures, obscuring forensic cues
 
 This level of detail is critical for downstream tasks such as expert review, claim auditing, and fraud simulation.
 
