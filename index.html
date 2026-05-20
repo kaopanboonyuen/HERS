@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>HERS: Hidden-Pattern Expert Learning for Risk-Specific Vehicle Damage Adaptation</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍄</text></svg>">
+<style>
+  :root {
+    --white: #ffffff;
+    --off-white: #f8f7f5;
+    --warm-gray: #f0ede8;
+    --border: #e2ddd7;
+    --text-primary: #1a1714;
+    --text-secondary: #5a554e;
+    --text-muted: #9a9490;
+    --accent: #c8402a;
+    --accent-light: #f5e8e5;
+    --accent-dark: #a33220;
+    --gold: #b8963e;
+    --blue: #2a5298;
+    --blue-light: #e8eef7;
+    --shadow-sm: 0 1px 3px rgba(26,23,20,0.06), 0 1px 2px rgba(26,23,20,0.04);
+    --shadow-md: 0 4px 16px rgba(26,23,20,0.08), 0 2px 6px rgba(26,23,20,0.05);
+    --shadow-lg: 0 12px 40px rgba(26,23,20,0.10), 0 4px 12px rgba(26,23,20,0.06);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--text-primary);
+    font-size: 16px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NOISE TEXTURE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ── HERO ── */
+  .hero {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 80px 24px 72px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -120px; left: 50%; transform: translateX(-50%);
+    width: 700px; height: 400px;
+    background: radial-gradient(ellipse, rgba(200,64,42,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 100px;
+    border: 1px solid rgba(200,64,42,0.2);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: fadeUp 0.6s ease 0.1s forwards;
+  }
+
+  .hero-badge::before { content: '●'; font-size: 8px; animation: pulse 2s infinite; }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    max-width: 860px;
+    margin: 0 auto 12px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.2s forwards;
+  }
+
+  .hero h1 .accent { color: var(--accent); font-style: italic; }
+
+  .hero-acronym {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(3.5rem, 10vw, 6.5rem);
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    color: var(--text-primary);
+    line-height: 1;
+    margin-bottom: 24px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.15s forwards;
+  }
+
+  .hero-acronym span {
+    display: inline-block;
+    position: relative;
+  }
+
+  .hero-acronym span::after {
+    content: '';
+    position: absolute;
+    bottom: 2px; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    animation: underlineIn 0.5s ease forwards;
+  }
+
+  .hero-acronym span:nth-child(1)::after { animation-delay: 0.9s; }
+  .hero-acronym span:nth-child(2)::after { animation-delay: 1.0s; }
+  .hero-acronym span:nth-child(3)::after { animation-delay: 1.1s; }
+  .hero-acronym span:nth-child(4)::after { animation-delay: 1.2s; }
+
+  @keyframes underlineIn { to { transform: scaleX(1); } }
+
+  .hero-subtitle {
+    font-size: 1.05rem;
+    color: var(--text-secondary);
+    max-width: 640px;
+    margin: 0 auto 40px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.35s forwards;
+  }
+
+  .hero-author {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.45s forwards;
+  }
+
+  .hero-author strong { color: var(--text-primary); font-weight: 600; }
+  .hero-author a { color: var(--accent); text-decoration: none; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; }
+  .hero-author a:hover { text-decoration: underline; }
+
+  .hero-links {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: fadeUp 0.7s ease 0.55s forwards;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+  }
+
+  .btn-primary {
+    background: var(--text-primary);
+    color: var(--white);
+  }
+  .btn-primary:hover { background: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+  .btn-outline {
+    background: var(--white);
+    color: var(--text-primary);
+    border: 1.5px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--text-primary); transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+  .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── CONTAINER ── */
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .container-wide {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── SECTION ── */
+  section {
+    padding: 80px 0;
+  }
+
+  section + section {
+    border-top: 1px solid var(--border);
+  }
+
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 60px;
+  }
+
+  .section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(1.7rem, 3.5vw, 2.4rem);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+  }
+
+  .section-body {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    max-width: 680px;
+    line-height: 1.8;
+  }
+
+  /* ── HERO IMAGE ── */
+  .hero-image-wrap {
+    margin: 0 auto;
+    padding: 48px 24px 0;
+    max-width: 1000px;
+    opacity: 0;
+    animation: fadeUp 0.9s ease 0.65s forwards;
+  }
+
+  .hero-image-wrap img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .img-caption {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 12px;
+    letter-spacing: 0.02em;
+  }
+
+  /* ── MOTIVATION CARDS ── */
+  .motivation-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    margin-top: 48px;
+  }
+
+  @media (max-width: 680px) {
+    .motivation-grid { grid-template-columns: 1fr; }
+  }
+
+  .mcard {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .mcard:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+
+  .mcard::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+  }
+
+  .mcard:hover::before { transform: scaleX(1); }
+
+  .mcard-icon {
+    font-size: 1.6rem;
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .mcard h4 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.05rem;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+  }
+
+  .mcard p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  /* ── CORE QUESTION ── */
+  .core-question {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 12px 12px 0;
+    padding: 32px 36px;
+    margin: 48px 0;
+    position: relative;
+  }
+
+  .core-question p {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    font-style: italic;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+
+  .core-question cite {
+    display: block;
+    font-style: normal;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── FIGURE SECTION ── */
+  .figure-block {
+    margin-top: 48px;
+  }
+
+  .figure-block img {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-md);
+    display: block;
+  }
+
+  .figure-meta {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--off-white);
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+
+  .figure-num {
+    flex-shrink: 0;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--white);
+    background: var(--accent);
+    padding: 4px 10px;
+    border-radius: 4px;
+    text-transform: uppercase;
+  }
+
+  .figure-desc p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .figure-desc strong { color: var(--text-primary); font-weight: 600; }
+
+  .key-obs {
+    margin-top: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .obs-tag {
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 4px 12px;
+    border-radius: 100px;
+    background: var(--accent-light);
+    color: var(--accent-dark);
+    border: 1px solid rgba(200,64,42,0.15);
+  }
+
+  /* ── PIPELINE ── */
+  .pipeline {
+    margin-top: 48px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    position: relative;
+  }
+
+  @media (max-width: 700px) {
+    .pipeline { grid-template-columns: 1fr 1fr; }
+  }
+
+  .pipeline::before {
+    content: '';
+    position: absolute;
+    top: 36px; left: 12.5%; right: 12.5%;
+    height: 2px;
+    background: linear-gradient(to right, var(--accent), var(--gold));
+    z-index: 0;
+  }
+
+  @media (max-width: 700px) {
+    .pipeline::before { display: none; }
+  }
+
+  .pipe-step {
+    text-align: center;
+    padding: 0 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .pipe-icon {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: var(--white);
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 1.6rem;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .pipe-step:hover .pipe-icon {
+    border-color: var(--accent);
+    transform: scale(1.08);
+  }
+
+  .pipe-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .pipe-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    line-height: 1.3;
+  }
+
+  .pipe-body {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.55;
+  }
+
+  /* ── CONTRIBUTIONS ── */
+  .contrib-list {
+    margin-top: 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .contrib-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px 24px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+  }
+
+  .contrib-item:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .contrib-marker {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--white);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    margin-top: 2px;
+  }
+
+  .contrib-text {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.65;
+  }
+
+  .contrib-text strong { color: var(--text-primary); }
+
+  /* ── DUAL USE ── */
+  .dual-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-top: 40px;
+  }
+
+  @media (max-width: 640px) {
+    .dual-grid { grid-template-columns: 1fr; }
+  }
+
+  .dual-card {
+    border-radius: 12px;
+    padding: 28px 24px;
+    border: 1px solid var(--border);
+  }
+
+  .dual-card.enable {
+    background: #f0f7f0;
+    border-color: #b8d9b8;
+  }
+
+  .dual-card.risk {
+    background: #fdf3f1;
+    border-color: #f2c4bb;
+  }
+
+  .dual-card h4 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.1rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .dual-card.enable h4 { color: #2d6e2d; }
+  .dual-card.risk h4 { color: #8b2c1e; }
+
+  .dual-card ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .dual-card ul li {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    padding-left: 20px;
+    position: relative;
+  }
+
+  .dual-card ul li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    font-size: 0.8rem;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .dual-card.enable ul li::before { color: #3a8a3a; }
+  .dual-card.risk ul li::before { color: var(--accent); }
+
+  /* ── PAPER CARD ── */
+  .paper-card {
+    background: var(--off-white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 40px;
+    margin-top: 48px;
+    display: flex;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  @media (max-width: 640px) {
+    .paper-card { flex-direction: column; padding: 28px; }
+  }
+
+  .paper-icon {
+    flex-shrink: 0;
+    width: 64px; height: 80px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    box-shadow: var(--shadow-sm);
+  }
+
+  .paper-info h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .paper-info .paper-venue {
+    font-size: 0.82rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+    margin-bottom: 16px;
+  }
+
+  .paper-info blockquote {
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    font-style: italic;
+    border-left: 3px solid var(--border);
+    padding-left: 16px;
+    line-height: 1.65;
+  }
+
+  /* ── AUTHOR ── */
+  .author-card {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    margin-top: 48px;
+    transition: box-shadow 0.2s;
+  }
+
+  .author-card:hover { box-shadow: var(--shadow-md); }
+
+  .author-avatar {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--gold) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+    font-family: 'DM Serif Display', serif;
+    color: white;
+  }
+
+  .author-info h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.15rem;
+    margin-bottom: 4px;
+  }
+
+  .author-info a {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: var(--accent);
+    text-decoration: none;
+  }
+
+  .author-info a:hover { text-decoration: underline; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--text-primary);
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    padding: 40px 24px;
+    font-size: 0.82rem;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.04em;
+  }
+
+  footer a { color: rgba(255,255,255,0.7); text-decoration: none; }
+  footer a:hover { color: var(--white); }
+
+  footer .footer-quote {
+    font-family: 'DM Serif Display', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 16px;
+    letter-spacing: 0;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky;
+    top: 0;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    z-index: 100;
+    padding: 0 24px;
+  }
+
+  .nav-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 52px;
+    gap: 0;
+  }
+
+  .nav-logo {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: 0.08em;
+    margin-right: auto;
+  }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .nav-links a:hover {
+    background: var(--off-white);
+    color: var(--text-primary);
+  }
+
+  @media (max-width: 600px) {
+    .nav-links { display: none; }
+  }
+
+  /* ── SCROLL REVEAL ── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.65s ease, transform 0.65s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* ── STAT ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-top: 48px;
+  }
+
+  @media (max-width: 600px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .stat-cell {
+    background: var(--white);
+    padding: 28px 20px;
+    text-align: center;
+    transition: background 0.2s;
+  }
+
+  .stat-cell:hover { background: var(--off-white); }
+
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .stat-label {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ── FIGURE GALLERY ── */
+  .figure-gallery {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 48px;
+  }
+
+  @media (max-width: 700px) {
+    .figure-gallery { grid-template-columns: 1fr; }
+  }
+
+  .fig-item img {
+    width: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.25s, box-shadow 0.25s;
+    display: block;
+  }
+
+  .fig-item:hover img {
+    transform: scale(1.01);
+    box-shadow: var(--shadow-md);
+  }
+
+  .fig-label {
+    margin-top: 10px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: 0.02em;
+  }
+
+  /* Animated counter */
+  @keyframes countUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  .stat-num { animation: countUp 0.5s ease both; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <span class="nav-logo">HERS</span>
+    <ul class="nav-links">
+      <li><a href="#motivation">Motivation</a></li>
+      <li><a href="#method">Method</a></li>
+      <li><a href="#results">Results</a></li>
+      <li><a href="#contributions">Contributions</a></li>
+      <li><a href="#paper">Paper</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero">
+  <div class="hero-badge">arXiv Preprint · ICLR 2026 Submission</div>
+
+  <div class="hero-acronym">
+    <span>H</span><span>E</span><span>R</span><span>S</span>
+  </div>
+
+  <h1>
+    <span class="accent">Hidden-Pattern</span> Expert Learning for<br/>
+    Risk-Specific Vehicle Damage Adaptation<br/>
+    in Diffusion Models
+  </h1>
+
+  <p class="hero-subtitle">
+    A domain-adaptive diffusion framework for forensically plausible, risk-aware vehicle damage synthesis in auto insurance, fraud detection, and claim verification workflows.
+  </p>
+
+  <p class="hero-author">
+  <strong>Teerapong Panboonyuen</strong> &nbsp;·&nbsp;
+  <a href="https://kaopanboonyuen.github.io/HERS" target="_blank" rel="noopener noreferrer">
+    kaopanboonyuen.github.io/HERS
+  </a>
+</p>
+
+<div class="hero-links">
+  <a href="https://arxiv.org/pdf/2601.21517" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    arXiv Paper
+  </a>
+
+  <a href="https://github.com/kaopanboonyuen/HERS" target="_blank" rel="noopener noreferrer" class="btn btn-outline">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22"/></svg>
+    GitHub
+  </a>
+
+  <a href="#paper" class="btn btn-outline">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    BibTeX
+  </a>
+</div>
+  </div>
+</header>
+
+<!-- HERO IMAGE -->
+<div class="hero-image-wrap">
+  <img src="HERS_IMG/HERS_SHOWCASE_02.png" alt="HERS showcase — generated vehicle damage samples" onerror="this.style.display='none'"/>
+  <p class="img-caption">HERS · Generated samples demonstrating forensic damage fidelity across diverse vehicle types</p>
+</div>
+
+<!-- ──────────────────────────────────────────── -->
+<!-- MOTIVATION -->
+<!-- ──────────────────────────────────────────── -->
+<section id="motivation">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">01 · Motivation</p>
+      <h2 class="section-title">Why visual realism alone is dangerous</h2>
+      <p class="section-body">
+        Modern diffusion models can synthesize convincing car damage imagery — but in safety-critical domains, surface realism is not enough. Auto insurance workflows demand semantic and forensic precision that generic generative models fundamentally lack.
+      </p>
+    </div>
+
+    <div class="motivation-grid reveal">
+      <div class="mcard">
+        <span class="mcard-icon">⚖️</span>
+        <h4>Liability at Stake</h4>
+        <p>A single missing crack in synthesized evidence can flip liability decisions, alter claim outcomes, and expose insurers to financial loss.</p>
+      </div>
+      <div class="mcard">
+        <span class="mcard-icon">🔍</span>
+        <h4>Fraud Analysis</h4>
+        <p>Misplaced dents and incoherent damage patterns invalidate automated fraud detection systems trained on real-world accident imagery.</p>
+      </div>
+      <div class="mcard">
+        <span class="mcard-icon">🤖</span>
+        <h4>Downstream Systems</h4>
+        <p>Physically implausible damage patterns mislead claim processing pipelines, creating systemic errors at scale across insurance workflows.</p>
+      </div>
+    </div>
+
+    <div class="core-question reveal">
+      <p>Can diffusion models learn the <em>semantic and forensic structure</em> of vehicle damage — not just its appearance?</p>
+      <cite>— Central research question driving HERS</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────────── -->
+<!-- FIGURE 1 -->
+<!-- ──────────────────────────────────────────── -->
+<section id="figure1">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">02 · Qualitative Comparison</p>
+      <h2 class="section-title">Fine-Grained Damage Fidelity &amp; Localized Consistency</h2>
+      <p class="section-body">
+        A direct comparison between HERS and strong diffusion-based baselines including SD v1.5, SDXL, MoLE, VQ-Diffusion, and Versatile Diffusion across damage types and vehicle scenarios.
+      </p>
+    </div>
+
+    <div class="figure-block reveal">
+      <img src="HERS_IMG/HERS_SHOWCASE_01.png" alt="Figure 1 — Qualitative damage fidelity comparison" onerror="this.style.display='none'"/>
+      <div class="figure-meta">
+        <span class="figure-num">Fig 01</span>
+        <div class="figure-desc">
+          <p>
+            HERS produces damage regions with <strong>higher visual fidelity</strong> and <strong>localized structural consistency</strong>.
+            Fine-grained artifacts — dents, cracks, torn bumpers, and paint abrasions — are preserved under zoom, where competing models tend to smooth, misplace, or hallucinate damage textures, obscuring forensically critical cues.
+          </p>
+          <div class="key-obs">
+            <span class="obs-tag">Higher visual fidelity</span>
+            <span class="obs-tag">Localized structural consistency</span>
+            <span class="obs-tag">Forensic cue preservation</span>
+            <span class="obs-tag">Zoom-stable detail</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────────── -->
+<!-- METHOD -->
+<!-- ──────────────────────────────────────────── -->
+<section id="method">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">03 · Framework</p>
+      <h2 class="section-title">The HERS Pipeline</h2>
+      <p class="section-body">
+        HERS introduces a fully automated, self-supervised adaptation pipeline — no manual annotation, no inference-time routing overhead. Specialization and generalization are unified in a single merged model.
+      </p>
+    </div>
+
+    <div class="figure-block reveal">
+      <img src="HERS_IMG/HERS_SHOWCASE_03.png" alt="Figure 2 — HERS framework overview" onerror="this.style.display='none'"/>
+      <div class="figure-meta">
+        <span class="figure-num">Fig 02</span>
+        <div class="figure-desc">
+          <p>Overview of the HERS adaptation framework showing LLM-driven prompt generation, text-to-image synthesis, damage-specific expert training, and expert merging into a unified model.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pipeline reveal">
+      <div class="pipe-step">
+        <div class="pipe-icon">🧠</div>
+        <p class="pipe-num">Step 01</p>
+        <p class="pipe-title">LLM-Driven Prompt Generation</p>
+        <p class="pipe-body">Typical vehicle parts, accident narratives, and physically implausible scenarios to expose failure modes</p>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">🖼️</div>
+        <p class="pipe-num">Step 02</p>
+        <p class="pipe-title">Text-to-Image Synthesis</p>
+        <p class="pipe-body">Base diffusion backbone generates diverse training imagery guided by structured prompts</p>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">⚙️</div>
+        <p class="pipe-num">Step 03</p>
+        <p class="pipe-title">Damage-Specific Expert Learning</p>
+        <p class="pipe-body">Lightweight LoRA expert per damage type — dent, scratch, crack, stain — trained independently</p>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-icon">🔗</div>
+        <p class="pipe-num">Step 04</p>
+        <p class="pipe-title">Expert Merging</p>
+        <p class="pipe-body">All experts unified into a single model — no routing, no manual labels, zero overhead at inference</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────────── -->
+<!-- RESULTS -->
+<!-- ──────────────────────────────────────────── -->
+<section id="results">
+  <div class="container-wide">
+    <div class="container">
+      <div class="reveal">
+        <p class="section-label">04 · Evaluation</p>
+        <h2 class="section-title">Quantitative Results &amp; Human Preference</h2>
+        <p class="section-body">
+          HERS is evaluated across four expert-rated dimensions, consistently outperforming all baselines in both perceptual quality and semantic alignment.
+        </p>
+      </div>
+    </div>
+
+    <div class="stats-row reveal" style="max-width: 860px; margin: 48px auto 0;">
+      <div class="stat-cell">
+        <div class="stat-num">↑</div>
+        <div class="stat-label">Car Stain Quality</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">↑</div>
+        <div class="stat-label">Car Damage Quality</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">↑</div>
+        <div class="stat-label">Car Part Quality</div>
+      </div>
+      <div class="stat-cell">
+        <div class="stat-num">↑</div>
+        <div class="stat-label">Overall Image Quality</div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="figure-gallery reveal">
+        <div class="fig-item">
+          <img src="HERS_IMG/HERS_SHOWCASE_04.png" alt="Figure 3 — User study results" onerror="this.style.display='none'"/>
+          <p class="fig-label">Fig 03 · Human Preference Study — four evaluation dimensions</p>
+        </div>
+        <div class="fig-item">
+          <img src="HERS_IMG/HERS_SHOWCASE_05.png" alt="Figure 4 — Full vehicle consistency" onerror="this.style.display='none'"/>
+          <p class="fig-label">Fig 04 · Full-Body Damage Generation — zoom-out insurance perspective</p>
+        </div>
+      </div>
+
+      <div class="figure-meta reveal" style="margin-top: 24px;">
+        <span class="figure-num">Key Finding</span>
+        <div class="figure-desc">
+          <p>
+            HERS improvements are <strong>not cosmetic</strong> — they reflect better semantic alignment with real-world damage physics.
+            Full-vehicle damage patterns remain consistent across panels, doors, and lighting conditions, making synthetic images indistinguishable from real accident photographs to human evaluators and automated systems alike.
+          </p>
+          <div class="key-obs">
+            <span class="obs-tag">State-of-the-art human preference</span>
+            <span class="obs-tag">Gains over MoLE &amp; VD</span>
+            <span class="obs-tag">Semantic alignment</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────────── -->
+<!-- DUAL USE -->
+<!-- ──────────────────────────────────────────── -->
+<section id="dualuse">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">05 · Risk &amp; Responsibility</p>
+      <h2 class="section-title">Beyond Generation: Dual-Use AI</h2>
+      <p class="section-body">
+        HERS is not only a generative improvement — it is a case study in the dual-use nature of domain-specific generative AI. High-fidelity damage synthesis enables powerful applications and simultaneously exposes real risks.
+      </p>
+    </div>
+
+    <div class="dual-grid reveal">
+      <div class="dual-card enable">
+        <h4>✅ Enabling Applications</h4>
+        <ul>
+          <li>Rare-event simulation for model robustness</li>
+          <li>Large-scale data augmentation</li>
+          <li>Robust training for claim systems</li>
+          <li>Expert review and fraud simulation</li>
+        </ul>
+      </div>
+      <div class="dual-card risk">
+        <h4>⚠️ Identified Risks</h4>
+        <ul>
+          <li>Fabricated accident evidence</li>
+          <li>Manipulated insurance claims</li>
+          <li>Synthetic fraud at scale</li>
+          <li>Adversarial inputs to automated systems</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="core-question reveal" style="margin-top: 32px;">
+      <p>Domain-specific generative models must be paired with domain-specific safeguards.</p>
+      <cite>— HERS paper, Risk &amp; Responsibility section</cite>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────────── -->
+<!-- CONTRIBUTIONS -->
+<!-- ──────────────────────────────────────────── -->
+<section id="contributions">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">06 · Contributions</p>
+      <h2 class="section-title">Key Technical Contributions</h2>
+    </div>
+
+    <div class="contrib-list reveal">
+      <div class="contrib-item">
+        <span class="contrib-marker">01</span>
+        <p class="contrib-text">
+          Introduce <strong>risk-specific diffusion adaptation</strong> for auto insurance — the first framework targeting forensic plausibility in addition to visual realism.
+        </p>
+      </div>
+      <div class="contrib-item">
+        <span class="contrib-marker">02</span>
+        <p class="contrib-text">
+          Propose <strong>HERS</strong>, a self-supervised LoRA expert framework requiring <em>no manual annotation</em> and achieving specialization across four damage types within a single unified model.
+        </p>
+      </div>
+      <div class="contrib-item">
+        <span class="contrib-marker">03</span>
+        <p class="contrib-text">
+          Demonstrate <strong>state-of-the-art performance</strong> in text faithfulness, perceptual realism, and human preference across all evaluated damage categories and vehicle scenarios.
+        </p>
+      </div>
+      <div class="contrib-item">
+        <span class="contrib-marker">04</span>
+        <p class="contrib-text">
+          Expose the <strong>forensic implications</strong> of high-fidelity generative models in insurance workflows and argue for domain-specific safeguards as a research priority.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──────────────────────────────────────────── -->
+<!-- PAPER -->
+<!-- ──────────────────────────────────────────── -->
+<section id="paper">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">07 · Citation</p>
+      <h2 class="section-title">Paper</h2>
+    </div>
+
+    <div class="paper-card reveal">
+      <div class="paper-icon">📄</div>
+      <div class="paper-info">
+        <h3>HERS: Hidden-Pattern Expert Learning for Risk-Specific Vehicle Damage Adaptation in Diffusion Models</h3>
+        <p class="paper-venue">arXiv Preprint · ICLR 2026 Submission</p>
+        <blockquote>
+          This research is the product of independent effort and vision, driven by the goal of advancing trustworthy generative AI for real-world, safety-critical systems.
+        </blockquote>
+      </div>
+    </div>
+
+    <div class="reveal" style="margin-top: 24px;">
+      <pre style="background: var(--off-white); border: 1px solid var(--border); border-radius: 10px; padding: 24px 28px; font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7; overflow-x: auto; white-space: pre-wrap;">@article{panboonyuen2026hers,
+  title     = {HERS: Hidden-Pattern Expert Learning for
+               Risk-Specific Vehicle Damage Adaptation
+               in Diffusion Models},
+  author    = {Panboonyuen, Teerapong},
+  journal   = {arXiv preprint},
+  year      = {2026},
+  url       = {https://kaopanboonyuen.github.io/HERS}
+}</pre>
+    </div>
+
+    <div class="author-card reveal">
+      <div class="author-avatar">T</div>
+      <div class="author-info">
+        <h3>Teerapong Panboonyuen</h3>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 4px 0 8px;">Independent Researcher · Trustworthy Generative AI</p>
+        <a href="https://kaopanboonyuen.github.io/HERS">kaopanboonyuen.github.io/HERS</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p class="footer-quote">
+    "Rejection is not the end of the story. Sometimes it's just the proof that the idea is early."
+  </p>
+
+  <p>
+    HERS · Teerapong Panboonyuen ·
+    <a href="https://kaopanboonyuen.github.io/HERS"
+       target="_blank"
+       rel="noopener noreferrer">
+      kaopanboonyuen.github.io/HERS
+    </a>
+  </p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        // stagger children
+        const children = e.target.querySelectorAll('.mcard, .contrib-item, .pipe-step, .fig-item, .dual-card, .stat-cell');
+        children.forEach((c, i) => {
+          c.style.transitionDelay = `${i * 0.08}s`;
+          c.classList.add('visible');
+        });
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Smooth nav highlight
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  const navObserver = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        navLinks.forEach(a => {
+          a.style.color = '';
+          a.style.background = '';
+          if (a.getAttribute('href') === '#' + e.target.id) {
+            a.style.color = 'var(--accent)';
+          }
+        });
+      }
+    });
+  }, { threshold: 0.4 });
+
+  sections.forEach(s => navObserver.observe(s));
+</script>
+</body>
+</html>
