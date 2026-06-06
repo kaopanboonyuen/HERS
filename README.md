@@ -13,7 +13,7 @@
 
 Unlike generic text-to-image models that optimize for surface-level realism, HERS focuses on **hidden visual patterns**—subtle dents, asymmetric cracks, localized abrasions, and context-dependent damage cues—that matter in real-world insurance workflows.
 
-This repository accompanies the **arXiv release** of our paper (originally submitted to ICLR 2026) and serves as a transparent, research-focused showcase of the ideas, results, and implications of HERS.
+This repository accompanies the **arXiv release** of our paper and serves as a transparent, research-focused showcase of the ideas, results, and implications of HERS.
 
 ---
 
